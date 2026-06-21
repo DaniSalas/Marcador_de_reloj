@@ -1,0 +1,38 @@
+[versions]
+agp = "8.13.2"
+kotlin = "2.0.21"
+playServicesWearable = "19.0.0"
+composeBom = "2024.09.00"
+composeMaterialWear = "1.4.0"
+composeFoundationWear = "1.4.0"
+wearToolingPreview = "1.0.0"
+activityCompose = "1.9.2"
+coreSplashscreen = "1.0.1"
+kotlinxCoroutinesPlayServices = "1.9.0"
+
+[libraries]
+play-services-wearable = { group = "com.google.android.gms", name = "play-services-wearable", version.ref = "playServicesWearable" }
+compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
+ui = { group = "androidx.compose.ui", name = "ui" }
+ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
+ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
+ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
+ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
+ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
+# Wear OS specific compose libraries
+wear-compose-material = { group = "androidx.wear.compose", name = "compose-material", version.ref = "composeMaterialWear" }
+wear-compose-foundation = { group = "androidx.wear.compose", name = "compose-foundation", version.ref = "composeFoundationWear" }
+wear-tooling-preview = { group = "androidx.wear", name = "wear-tooling-preview", version.ref = "wearToolingPreview" }
+# Standard compose libraries
+compose-foundation = { group = "androidx.compose.foundation", name = "foundation" }
+compose-material3 = { group = "androidx.compose.material3", name = "material3" }
+compose-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended" }
+
+activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
+core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "coreSplashscreen" }
+kotlinx-coroutines-play-services = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-play-services", version.ref = "kotlinxCoroutinesPlayServices" }
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
