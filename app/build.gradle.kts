@@ -6,12 +6,12 @@ plugins {
 
 android {
     namespace = "com.example.marcadordereloj"
-    compileSdk = 36
+    compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.example.marcadordereloj.wear"
+        applicationId = "com.example.marcadordereloj"
         minSdk = 30
-        targetSdk = 36
+        targetSdk = 35
         versionCode = 1
         versionName = "1.0"
     }
@@ -40,7 +40,9 @@ android {
 
 dependencies {
     implementation(libs.play.services.wearable)
-    implementation(libs.kotlinx.coroutines.play.services)
+    // Forzamos la dependencia de corrutinas para Play Services para evitar el error de 'await'
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.9.0")
+    
     implementation(platform(libs.compose.bom))
     implementation(libs.ui)
     implementation(libs.ui.graphics)
