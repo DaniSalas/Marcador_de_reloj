@@ -82,20 +82,33 @@ class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
 
     private fun updateFromDataItem(dataMapItem: DataMapItem) {
         val dataMap = dataMapItem.dataMap
-        val names = dataMap.getStringArray("names") ?: emptyArray()
-        val numbers = dataMap.getStringArray("numbers") ?: emptyArray()
-        val langName = dataMap.getString("language", AppLanguage.ESPANOL_LATINO.name)
         
-        _currentLanguage = try { AppLanguage.valueOf(langName) } catch (e: Exception) { AppLanguage.ESPANOL_LATINO }
-        _customAppName = dataMap.getString("app_name", "DannyPhone")
-        _titleColor = Color(dataMap.getLong("title_color", Color.White.toArgb().toLong()).toInt())
-        _backgroundColor = Color(dataMap.getLong("bg_color", Color.Black.toArgb().toLong()).toInt())
+        if (dataMap.containsKey("language")) {
+            val langName = dataMap.getString("language", AppLanguage.ESPANOL_LATINO.name)
+            _currentLanguage = try { AppLanguage.valueOf(langName) } catch (e: Exception) { AppLanguage.ESPANOL_LATINO }
+        }
+
+        if (dataMap.containsKey("app_name")) {
+            _customAppName = dataMap.getString("app_name", "DannyPhone")
+        }
+
+        if (dataMap.containsKey("title_color")) {
+            _titleColor = Color(dataMap.getLong("title_color", Color.White.toArgb().toLong()).toInt())
+        }
+
+        if (dataMap.containsKey("bg_color")) {
+            _backgroundColor = Color(dataMap.getLong("bg_color", Color.Black.toArgb().toLong()).toInt())
+        }
         
-        _contacts.clear()
-        val count = if (names.size < numbers.size) names.size else numbers.size
-        for (i in 0 until count) {
-            if (names[i].isNotEmpty() || numbers[i].isNotEmpty()) {
-                _contacts.add(Contact(names[i], numbers[i]))
+        if (dataMap.containsKey("names") && dataMap.containsKey("numbers")) {
+            val names = dataMap.getStringArray("names") ?: emptyArray()
+            val numbers = dataMap.getStringArray("numbers") ?: emptyArray()
+            _contacts.clear()
+            val count = if (names.size < numbers.size) names.size else numbers.size
+            for (i in 0 until count) {
+                if (names[i].isNotEmpty() || numbers[i].isNotEmpty()) {
+                    _contacts.add(Contact(names[i], numbers[i]))
+                }
             }
         }
     }
@@ -193,20 +206,21 @@ fun DialerApp(strings: WatchTranslations, appName: String, titleColor: Color) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(bottom = 4.dp),
+            .padding(bottom = 2.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
         Text(
             text = if (phoneNumber.isEmpty()) appName else phoneNumber,
-            style = MaterialTheme.typography.title2.copy(fontSize = 24.sp, fontWeight = FontWeight.Bold), 
+            style = MaterialTheme.typography.title2.copy(fontSize = 22.sp, fontWeight = FontWeight.ExtraBold), 
             color = if (phoneNumber.isEmpty()) titleColor else Color.White,
             maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
             textAlign = TextAlign.Center,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp)
         )
 
-        Spacer(modifier = Modifier.height(2.dp))
+        Spacer(modifier = Modifier.height(1.dp))
 
         val rows = listOf(
             listOf("1", "2", "3"),
@@ -222,7 +236,7 @@ fun DialerApp(strings: WatchTranslations, appName: String, titleColor: Color) {
         ) {
             rows.forEach { row ->
                 Row(
-                    modifier = Modifier.fillMaxWidth(0.98f),
+                    modifier = Modifier.fillMaxWidth(0.96f),
                     horizontalArrangement = Arrangement.spacedBy(2.dp)
                 ) {
                     row.forEach { key ->
@@ -236,7 +250,7 @@ fun DialerApp(strings: WatchTranslations, appName: String, titleColor: Color) {
                             },
                             modifier = Modifier
                                 .weight(1f)
-                                .height(38.dp), 
+                                .height(32.dp), 
                             colors = ButtonDefaults.buttonColors(
                                 backgroundColor = when (key) {
                                     "⌫" -> Color.DarkGray
@@ -245,14 +259,14 @@ fun DialerApp(strings: WatchTranslations, appName: String, titleColor: Color) {
                                 }
                             )
                         ) {
-                            Text(key, fontSize = 26.sp, fontWeight = FontWeight.Bold)
+                            Text(key, fontSize = 20.sp, fontWeight = FontWeight.Bold)
                         }
                     }
                 }
             }
         }
 
-        Spacer(modifier = Modifier.height(4.dp))
+        Spacer(modifier = Modifier.height(2.dp))
 
         Button(
             onClick = {
@@ -263,11 +277,11 @@ fun DialerApp(strings: WatchTranslations, appName: String, titleColor: Color) {
                 }
             },
             modifier = Modifier
-                .fillMaxWidth(0.85f) 
-                .height(42.dp),
+                .fillMaxWidth(0.80f) 
+                .height(36.dp),
             colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF4CAF50))
         ) {
-            Text(strings.callButton, fontSize = 18.sp, fontWeight = FontWeight.ExtraBold)
+            Text(strings.callButton, fontSize = 16.sp, fontWeight = FontWeight.ExtraBold)
         }
     }
 }
@@ -296,16 +310,16 @@ data class WatchTranslations(
 
 fun getWatchTranslations(lang: AppLanguage): WatchTranslations {
     return when(lang) {
-        AppLanguage.ENGLISH -> WatchTranslations("Dial", "CALL", "Agenda", "No contacts. Check Phone.", "No name", "Calling...")
-        AppLanguage.ESPANOL_LATINO -> WatchTranslations("Marcar", "LLAMAR", "Agenda", "Sin contactos. Mira el móvil.", "Sin nombre", "Llamando...")
-        AppLanguage.CATALA -> WatchTranslations("Marcar", "TRUCAR", "Agenda", "Sense contactes. Mira el mòbil.", "Sense nom", "Trucant...")
-        AppLanguage.GALEGO -> WatchTranslations("Marcar", "CHAMAR", "Axenda", "Sen contactos. Mira o móbil.", "Sen nome", "Chamando...")
+        AppLanguage.ENGLISH -> WatchTranslations("Dial", "CALL", "Contacts", "No contacts. Check Phone.", "No name", "Calling...")
+        AppLanguage.ESPANOL_LATINO -> WatchTranslations("Marcar", "LLAMAR", "Contactos", "Sin contactos. Mira el móvil.", "Sin nombre", "Llamando...")
+        AppLanguage.CATALA -> WatchTranslations("Marcar", "TRUCAR", "Contactes", "Sense contactes. Mira el mòbil.", "Sense nom", "Trucant...")
+        AppLanguage.GALEGO -> WatchTranslations("Marcar", "CHAMAR", "Contactos", "Sen contactos. Mira o móbil.", "Sen nome", "Chamando...")
         AppLanguage.EUSKARA -> WatchTranslations("Markatu", "DEITU", "Agenda", "Kontakturik ez. Begiratu mugikorra.", "Izenik gabe", "Deitzen...")
         AppLanguage.BABLE -> WatchTranslations("Marcar", "LLAMAR", "Axenda", "Ensin contautos. Mira'l móvil.", "Ensin nome", "Llamando...")
-        AppLanguage.DEUTSCH -> WatchTranslations("Wählen", "ANRUFEN", "Agenda", "Keine Kontakte. Handy prüfen.", "Kein Name", "Anrufen...")
-        AppLanguage.FRANCAIS -> WatchTranslations("Composer", "APPELER", "Agenda", "Pas de contacts. Vérifier tel.", "Sans nom", "Appel en cours...")
-        AppLanguage.ITALIANO -> WatchTranslations("Componi", "CHIAMA", "Agenda", "Nessun contatto. Controlla tel.", "Senza nome", "Chiamata...")
-        AppLanguage.HINDI -> WatchTranslations("डायल", "कॉल करें", "कार्यसूची", "कोई संपर्क नहीं. फोन चेक करें।", "कोई नाम नहीं", "कॉल हो रहा है...")
+        AppLanguage.DEUTSCH -> WatchTranslations("Wählen", "ANRUFEN", "Kontakte", "Keine Kontakte. Handy prüfen.", "Kein Name", "Anrufen...")
+        AppLanguage.FRANCAIS -> WatchTranslations("Composer", "APPELER", "Contacts", "Pas de contacts. Vérifier tel.", "Sans nom", "Appel en cours...")
+        AppLanguage.ITALIANO -> WatchTranslations("Componi", "CHIAMA", "Contatti", "Nessun contacto. Controlla tel.", "Senza nome", "Chiamata...")
+        AppLanguage.HINDI -> WatchTranslations("डायल", "कॉल करें", "संपर्क", "कोई संपर्क नहीं. फोन चेक करें।", "कोई नाम नहीं", "कॉल हो रहा है...")
         AppLanguage.KOREAN -> WatchTranslations("다이얼", "전화 걸기", "연락처", "연락처가 없습니다. 폰을 확인하세요.", "이름 없음", "전화 거는 중...")
         AppLanguage.JAPANESE -> WatchTranslations("ダイヤル", "電話をかける", "連絡先", "連絡先がありません。スマホを確認してください。", "名前なし", "電話をかけています...")
     }
