@@ -8,6 +8,7 @@ composeFoundationWear = "1.4.0"
 wearToolingPreview = "1.0.0"
 activityCompose = "1.9.2"
 coreSplashscreen = "1.0.1"
+fragmentKtx = "1.8.5"
 kotlinxCoroutinesPlayServices = "1.9.0"
 
 [libraries]
@@ -29,6 +30,7 @@ compose-material3 = { group = "androidx.compose.material3", name = "material3" }
 compose-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended" }
 activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
 core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "coreSplashscreen" }
+fragment-ktx = { group = "androidx.fragment", name = "fragment-ktx", version.ref = "fragmentKtx" }
 kotlinx-coroutines-play-services = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-play-services", version.ref = "kotlinxCoroutinesPlayServices" }
 
 [plugins]

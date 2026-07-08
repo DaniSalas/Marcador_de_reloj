@@ -91,7 +91,7 @@ class MainActivity : ComponentActivity() {
             }
 
             // Personalization States (Phone)
-            var customName by remember { mutableStateOf(sharedPrefs.getString("custom_name", "DannyPhone") ?: "DannyPhone") }
+            var customName by remember { mutableStateOf(sharedPrefs.getString("custom_name", "WearOS Dialer") ?: "WearOS Dialer") }
             var titleColor by remember { mutableLongStateOf(sharedPrefs.getLong("title_color", Color(0xFF1976D2).toArgb().toLong())) }
             var bgColor by remember { mutableLongStateOf(sharedPrefs.getLong("bg_color", Color(0xFFE3F2FD).toArgb().toLong())) }
             
@@ -270,15 +270,15 @@ fun DannyPhoneApp(
                 )
                 "contacts" -> ContactsScreen(
                     strings, currentLanguage, customName, watchTitleColor, watchBackgroundColor,
-                    titleColor, backgroundColor, useImageBg, bgImageUri, contacts, onBack = { currentScreen = "home" }
+                    titleColor, backgroundColor, useImageBg, bgImageUri, contacts, selectedFont, fontSize, onBack = { currentScreen = "home" }
                 )
                 "language" -> LanguageScreen(
                     strings, currentLanguage, onLanguageChange, 
-                    titleColor, backgroundColor, useImageBg, bgImageUri, onBack = { currentScreen = "home" }
+                    titleColor, backgroundColor, useImageBg, bgImageUri, customName, selectedFont, fontSize, onBack = { currentScreen = "home" }
                 )
                 "permissions" -> PermissionsScreen(
                     strings, onPermissionsClick, onOverlayClick, checkCallPerm(), checkOverlayPerm(),
-                    titleColor, backgroundColor, useImageBg, bgImageUri, onBack = { currentScreen = "home" }
+                    titleColor, backgroundColor, useImageBg, bgImageUri, customName, selectedFont, fontSize, onBack = { currentScreen = "home" }
                 )
                 "settings" -> SettingsScreen(
                     strings, customName, onNameChange, titleColor, onTitleColorChange, 
@@ -289,7 +289,7 @@ fun DannyPhoneApp(
                 "watch_settings" -> WatchSettingsScreen(
                     strings, watchTitleColor, onWatchTitleColorChange, 
                     watchBackgroundColor, onWatchBgColorChange,
-                    titleColor, backgroundColor, useImageBg, bgImageUri, onBack = { currentScreen = "home" }
+                    titleColor, backgroundColor, useImageBg, bgImageUri, customName, selectedFont, fontSize, onBack = { currentScreen = "home" }
                 )
             }
         }
@@ -298,7 +298,9 @@ fun DannyPhoneApp(
 
 @Composable
 fun ScreenWrapper(
-    title: String,
+    appName: String,
+    appFont: FontOption,
+    appFontSize: Float,
     titleColor: Color,
     backgroundColor: Color,
     useImageBg: Boolean,
@@ -334,7 +336,7 @@ fun ScreenWrapper(
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Sección Superior: Título
+            // Sección Superior: Título (Nombre de la App siempre arriba)
             Box(
                 modifier = Modifier.weight(0.4f).fillMaxWidth().padding(top = 16.dp),
                 contentAlignment = Alignment.Center
@@ -348,10 +350,11 @@ fun ScreenWrapper(
                     }
                 }
                 Text(
-                    text = title,
-                    style = MaterialTheme.typography.headlineMedium.copy(
-                        color = titleColor,
-                        fontWeight = FontWeight.Bold
+                    text = appName,
+                    style = MaterialTheme.typography.displayLarge.copy(
+                        fontFamily = appFont.family,
+                        fontSize = (appFontSize * 0.8f).sp,
+                        color = titleColor
                     ),
                     textAlign = TextAlign.Center
                 )
@@ -384,32 +387,17 @@ fun HomeScreen(
     onDonationClick: () -> Unit
 ) {
     ScreenWrapper(
-        title = "", // El nombre de la app se dibuja aparte para usar el estilo personalizado
+        appName = appName,
+        appFont = font,
+        appFontSize = fontSize,
         titleColor = titleColor,
         backgroundColor = backgroundColor,
         useImageBg = useImageBg,
         bgImageUri = bgImageUri
     ) {
-        // Sobrescribimos la zona del título para el Home para mantener el estilo de fuente personalizado
-        Box(
-            modifier = Modifier.fillMaxSize().weight(0.4f).padding(top = 16.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = appName,
-                style = MaterialTheme.typography.displayLarge.copy(
-                    fontFamily = font.family,
-                    fontSize = (fontSize * 0.8f).sp,
-                    color = titleColor
-                ),
-                textAlign = TextAlign.Center
-            )
-        }
-
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .weight(2.2f)
                 .padding(horizontal = 24.dp, vertical = 20.dp)
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(10.dp),
@@ -482,6 +470,8 @@ fun ContactsScreen(
     useImageBg: Boolean,
     bgImageUri: String?,
     contacts: androidx.compose.runtime.snapshots.SnapshotStateList<ContactSlot>,
+    appFont: FontOption,
+    appFontSize: Float,
     onBack: () -> Unit
 ) {
     val context = LocalContext.current
@@ -495,7 +485,9 @@ fun ContactsScreen(
     val itemHeightPx = 110f * density 
 
     ScreenWrapper(
-        title = strings.contacts,
+        appName = customName,
+        appFont = appFont,
+        appFontSize = appFontSize,
         titleColor = titleColor,
         backgroundColor = backgroundColor,
         useImageBg = useImageBg,
@@ -651,7 +643,9 @@ fun SettingsScreen(
     }
 
     ScreenWrapper(
-        title = strings.phoneStyle,
+        appName = customName,
+        appFont = selectedFont,
+        appFontSize = fontSize,
         titleColor = titleColor,
         backgroundColor = backgroundColor,
         useImageBg = useImageBg,
@@ -697,7 +691,7 @@ fun SettingsScreen(
             }
 
             Spacer(modifier = Modifier.height(16.dp))
-            Text("Tamaño de Fuente: ${fontSize.toInt()}sp", style = MaterialTheme.typography.titleMedium)
+            Text("${strings.fontSizeLabel}: ${fontSize.toInt()}sp", style = MaterialTheme.typography.titleMedium)
             Slider(
                 value = fontSize,
                 onValueChange = onFontSizeChange,
@@ -714,7 +708,7 @@ fun SettingsScreen(
                 }
             }
             
-            Text("Espectro de color (Texto):", style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(top = 8.dp))
+            Text("${strings.spectrumText}:", style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(top = 8.dp))
             ColorSpectrumSlider(titleColor, onTitleColorChange)
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -725,14 +719,14 @@ fun SettingsScreen(
             }
             
             Spacer(modifier = Modifier.height(8.dp))
-            Text("Color de fondo plano:", style = MaterialTheme.typography.bodyMedium)
+            Text(strings.flatBgLabel, style = MaterialTheme.typography.bodyMedium)
             val bgPresets = listOf(Color(0xFFE3F2FD), Color(0xFFF1F8E9), Color(0xFFFFF3E0), Color(0xFFF3E5F5), Color.White, Color.Black)
             Row(modifier = Modifier.fillMaxWidth().padding(top = 4.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 bgPresets.forEach { color ->
                     ColorCircle(color, isSelected = backgroundColor == color, onClick = { onBgColorChange(color) })
                 }
             }
-            Text("Espectro de color (Fondo):", style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(top = 8.dp))
+            Text("${strings.spectrumBg}:", style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(top = 8.dp))
             ColorSpectrumSlider(backgroundColor, onBgColorChange)
             
             Spacer(modifier = Modifier.height(32.dp))
@@ -784,10 +778,15 @@ fun WatchSettingsScreen(
     backgroundColor: Color,
     useImageBg: Boolean,
     bgImageUri: String?,
+    customName: String,
+    appFont: FontOption,
+    appFontSize: Float,
     onBack: () -> Unit
 ) {
     ScreenWrapper(
-        title = strings.watchStyle,
+        appName = customName,
+        appFont = appFont,
+        appFontSize = appFontSize,
         titleColor = titleColor,
         backgroundColor = backgroundColor,
         useImageBg = useImageBg,
@@ -805,7 +804,7 @@ fun WatchSettingsScreen(
                     ColorCircle(color, isSelected = watchTitleColor == color, onClick = { onWatchTitleColorChange(color) })
                 }
             }
-            Text("Espectro de color (Texto Reloj):", style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(top = 8.dp))
+            Text("${strings.spectrumWatchText}:", style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(top = 8.dp))
             ColorSpectrumSlider(watchTitleColor, onWatchTitleColorChange)
 
             Spacer(modifier = Modifier.height(32.dp))
@@ -816,7 +815,7 @@ fun WatchSettingsScreen(
                     ColorCircle(color, isSelected = watchBackgroundColor == color, onClick = { onWatchBgColorChange(color) })
                 }
             }
-            Text("Espectro de color (Fondo Reloj):", style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(top = 8.dp))
+            Text("${strings.spectrumWatchBg}:", style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(top = 8.dp))
             ColorSpectrumSlider(watchBackgroundColor, onWatchBgColorChange)
             
             Spacer(modifier = Modifier.height(32.dp))
@@ -835,10 +834,15 @@ fun PermissionsScreen(
     backgroundColor: Color,
     useImageBg: Boolean,
     bgImageUri: String?,
+    customName: String,
+    appFont: FontOption,
+    appFontSize: Float,
     onBack: () -> Unit
 ) {
     ScreenWrapper(
-        title = strings.permissions,
+        appName = customName,
+        appFont = appFont,
+        appFontSize = appFontSize,
         titleColor = titleColor,
         backgroundColor = backgroundColor,
         useImageBg = useImageBg,
@@ -891,10 +895,15 @@ fun LanguageScreen(
     backgroundColor: Color,
     useImageBg: Boolean,
     bgImageUri: String?,
+    customName: String,
+    appFont: FontOption,
+    appFontSize: Float,
     onBack: () -> Unit
 ) {
     ScreenWrapper(
-        title = strings.language,
+        appName = customName,
+        appFont = appFont,
+        appFontSize = appFontSize,
         titleColor = titleColor,
         backgroundColor = backgroundColor,
         useImageBg = useImageBg,
@@ -998,22 +1007,23 @@ data class TranslationStrings(
     val organizeAgenda: String, val name: String, val phone: String, val syncSuccess: String, val syncError: String,
     val callPermission: String, val overlayPermission: String, val activate: String, val note: String,
     val personalizationTitle: String, val customNameLabel: String, val fontStyleLabel: String, val titleColorLabel: String, val backgroundStyleLabel: String, val selectImageBtn: String, val selectColorBtn: String,
-    val phoneStyle: String, val watchStyle: String
+    val phoneStyle: String, val watchStyle: String,
+    val fontSizeLabel: String, val flatBgLabel: String, val spectrumText: String, val spectrumBg: String, val spectrumWatchText: String, val spectrumWatchBg: String
 )
 
 fun getTranslations(lang: AppLanguage): TranslationStrings {
     return when(lang) {
-        AppLanguage.ENGLISH -> TranslationStrings("Menu", "Home", "Contacts", "Style", "Language", "Permissions", "please, make a donation", "Support DannyPhone", "If you liked my application you can donate the amount you consider by doing a bizzum to +34655533304", "OK", "Organize Agenda", "Name", "Phone", "Synced!", "Error", "Calls", "Overlay", "ACTIVATE", "Note: Activate permissions.", "Style Settings", "App Name", "Font", "Text Color", "Background", "Gallery", "Color", "Phone Style", "Watch Style")
-        AppLanguage.ESPANOL_LATINO -> TranslationStrings("Menú", "Inicio", "Contactos", "Estilo", "Idioma", "Permisos", "por favor, haz una donación", "Apoya a DannyPhone", "Si te gustó mi aplicación puedes donar la cantidad que consideres haciendo un bizzum al +34655533304", "Aceptar", "Organizar Agenda", "Nombre", "Celular", "¡Sincronizado!", "Error", "Llamadas", "Superposición", "ACTIVAR", "Nota: Activa los permisos.", "Ajustes de Estilo", "Nombre App", "Fuente", "Color", "Fondo", "Galería", "Color", "Estilo Teléfono", "Estilo Reloj")
-        AppLanguage.CATALA -> TranslationStrings("Menú", "Inici", "Contactes", "Estil", "Idioma", "Permisos", "si us plau, fes una donación", "Ajuda a DannyPhone", "Si t'ha agradat la meva aplicació pots donar per Bizzum al +34655533304", "Acceptar", "Organitzar Agenda", "Nom", "Telèfon", "Sincronitzat!", "Error", "Trucades", "Superposició", "ACTIVAR", "Nota: Activa els permisos.", "Ajustos d'Estil", "Nom App", "Font", "Color Text", "Fons", "Galeria", "Color", "Estil Telèfon", "Estil Rellotge")
-        AppLanguage.GALEGO -> TranslationStrings("Menú", "Inicio", "Contactos", "Estilo", "Lingua", "Permisos", "por favor, fai unha doazón", "Apoia a DannyPhone", "Se che gustou a miña aplicación podes doar por Bizzum ao +34655533304", "Aceptar", "Organizar Axenda", "Nome", "Teléfono", "Sincronizado!", "Erro", "Chamadas", "Superposición", "ACTIVAR", "Nota: Activa os permisos.", "Axustes de Estilo", "Nome App", "Fonte", "Color Texto", "Fondo", "Galería", "Color", "Estilo Teléfono", "Estilo Reloxo")
-        AppLanguage.EUSKARA -> TranslationStrings("Menua", "Hasiera", "Agenda", "Pertsonalizatu", "Hizkuntza", "Baimenak", "mesedez, egin dohaintza bat", "DannyPhone Lagundu", "Nire aplicación gustatu bazaizu, bizzum bat egin dezakezu +34655533304 zenbakira", "Onartu", "Agenda Antolatu", "Izena", "Telefonoa", "Sinkronizatuta!", "Errorea", "Deiak", "Gainjartzea", "AKTIBATU", "Nota: Baimenak aktibatu.", "Estilo Ezarpenak", "App Izena", "Letra", "Testu Kolorea", "Atzealdea", "Galeria", "Color", "Telefono Estiloa", "Erloju Estiloa")
-        AppLanguage.BABLE -> TranslationStrings("Menú DannyPhone", "Entamu", "Axenda", "Estilu", "Llingua", "Permisos", "por favor, fai una donación", "Sofita a DannyPhone", "Si te prestó la mio aplicación pues donar por Bizzum al +34655533304", "Aceptar", "Organizar Axenda", "Nome", "Teléfanu", "¡Sincronizáu!", "Error", "Llamaes", "Superposición", "ACTIVAR", "Nota: Activa los permisos.", "Axustes d'Estilu", "Nome App", "Fonte", "Color Testu", "Fondu", "Galería", "Color", "Estilu Teléfanu", "Estilu Reló")
-        AppLanguage.DEUTSCH -> TranslationStrings("Menü", "Startseite", "Kontakte", "Stil", "Sprache", "Berechtigungen", "bitte spenden Sie", "Unterstützen Sie DannyPhone", "Wenn Ihnen meine Anwendung gefallen hat, können Sie den Betrag spenden, den Sie für angemessen halten, indem Sie ein Bizzum an +34655533304 senden", "OK", "Agenda organisieren", "Name", "Telefon", "Synchronisiert!", "Fehler", "Anrufe", "Überlagerung", "AKTIVIEREN", "Nota: Baimenak aktibatu.", "Stil-Einstellungen", "App-Name", "Schriftart", "Farbe", "Hintergrund", "Galerie", "Farbe", "Telefon-Stil", "Uhren-Stil")
-        AppLanguage.FRANCAIS -> TranslationStrings("Menu", "Accueil", "Contacts", "Style", "Langue", "Autorisations", "s'il vous plaît, faites un don", "Soutenir DannyPhone", "Si vous avez aimé mon application, vous pouvez donner le montant que vous considérez en haciendo un bizzum au +34655533304", "OK", "Organiser l'agenda", "Nom", "Téléphone", "Synchronisé !", "Erreur", "Appels", "Superposition", "ACTIVER", "Note: Activa les permisos.", "Paramètres de style", "Nom de l'app", "Police", "Couleur", "Fond", "Galerie", "Couleur", "Style Téléphone", "Style Montre")
-        AppLanguage.ITALIANO -> TranslationStrings("Menu", "Home", "Contatti", "Stile", "Lingua", "Permessi", "per favore, fai una donazione", "Sostieni DannyPhone", "Se ti è piaciuta la mia aplicación puoi donare l'importo que ritieni opportuno haciendo un bizzum al +34655533304", "OK", "Organizza agenda", "Nom", "Telefono", "Sincronizzato!", "Errore", "Chiamate", "Sovrapposición", "ATTIVA", "Note: Activa i permessi.", "Impostaciones stile", "Nome App", "Font", "Colore", "Sfondo", "Galleria", "Colore", "Stile Telefono", "Stile Orologio")
-        AppLanguage.HINDI -> TranslationStrings("मेनू", "होम", "संपर्क", "शैली", "भाषा", "अनुमतियां", "कृपया दान करें", "DannyPhone का समर्थन करें", "यदि आपको मेरा एप्लिकेशन पसंद आया है, तो आप +34655533304 पर बिज़म करके अपनी इच्छानुसार राशि दान कर सकते हैं", "ठीक es", "एजenda व्यवस्थित करें", "नाम", "फ़ोन", "सिंक हो गया!", "त्रुट유", "कॉल", "ओवरले", "सक्रिय करें", "ध्यान दें: अनुमति सक्रिय करें।", "शैली setिंग्स", "ऐप का नाम", "फ़ॉन्ट", "रंग", "पृष्ठभूमि", "गैलरी", "रंग", "फ़ोन शैली", "घड़ी की शैली")
-        AppLanguage.KOREAN -> TranslationStrings("메뉴", "홈", "연락처", "스타일", "언어", "권한", "기부해 주세요", "DannyPhone 지원", "제 애플리케이션이 마음에 드셨다면 +34655533304로 bizzum을 보내 원하는 금액을 기부하실 su isseumnida", "확인", "일정 정리", "이름", "전화번호", "동기화됨!", "오류", "전화", "오버레이", "활성화", "참고: 권한을 활성화하십시오.", "스타일 설정", "앱 이름", "글꼴", "색상", "배경", "갤러리", "색상", "폰 estilo", "시계 스타일")
-        AppLanguage.JAPANESE -> TranslationStrings("メニュー", "ホーム", "連絡先", "スタイル", "言語", "権限", "寄付をお願いします", "DannyPhone をサポート", "私のアプリを気に入っていただけたなら, +34655533304 に bizzum を送ante, お好きな金額 को寄付していただけます", "OK", "アジェンダの整理", "名前", "電話番号", "同期しました！", "エラー", "通話", "オーバーレイ", "有効にする", "注意：権限を有効 in してください。", "スタイル設定", "アプリ名", "フォント", "色", "背景", "갤러리", "色", "電話スタイル", "時計スタイル")
+        AppLanguage.ENGLISH -> TranslationStrings("Menu", "Home", "Contacts", "Style", "Language", "Permissions", "please, make a donation", "Support WearOS Dialer", "If you liked my application you can donate the amount you consider by doing a bizzum to +34655533304", "OK", "Organize Agenda", "Name", "Phone", "Synced!", "Error", "Calls", "Overlay", "ACTIVATE", "Note: Activate permissions.", "Style Settings", "App Name", "Font", "Text Color", "Background", "Gallery", "Color", "Phone Style", "Watch Style", "Font Size", "Flat background color", "Color spectrum (Text)", "Color spectrum (Background)", "Color spectrum (Watch Text)", "Color spectrum (Watch Background)")
+        AppLanguage.ESPANOL_LATINO -> TranslationStrings("Menú", "Inicio", "Contactos", "Estilo", "Idioma", "Permisos", "por favor, haz una donación", "Apoya a WearOS Dialer", "Si te gustó mi aplicación puedes donar la cantidad que consideres haciendo un bizzum al +34655533304", "Aceptar", "Organizar Agenda", "Nombre", "Celular", "¡Sincronizado!", "Error", "Llamadas", "Superposición", "ACTIVAR", "Nota: Activa los permisos.", "Ajustes de Estilo", "Nombre App", "Fuente", "Color", "Fondo", "Galería", "Color", "Estilo Teléfono", "Estilo Reloj", "Tamaño de Fuente", "Color de fondo plano", "Espectro de color (Texto)", "Espectro de color (Fondo)", "Espectro de color (Texto Reloj)", "Espectro de color (Fondo Reloj)")
+        AppLanguage.CATALA -> TranslationStrings("Menú", "Inici", "Contactes", "Estil", "Idioma", "Permisos", "si us plau, fes una donació", "Ajuda a WearOS Dialer", "Si t'ha agradat la meva aplicació pots donar per Bizzum al +34655533304", "Acceptar", "Organitzar Agenda", "Nom", "Telèfon", "Sincronitzat!", "Error", "Trucades", "Superposició", "ACTIVAR", "Nota: Activa els permisos.", "Ajustos d'Estil", "Nom App", "Font", "Color Text", "Fons", "Galeria", "Color", "Estil Telèfon", "Estil Rellotge", "Mida de la font", "Color de fons pla", "Espectre de color (Text)", "Espectre de color (Fons)", "Espectre de color (Text Rellotge)", "Espectre de color (Fons Rellotge)")
+        AppLanguage.GALEGO -> TranslationStrings("Menú", "Inicio", "Contactos", "Estilo", "Lingua", "Permisos", "por favor, fai unha doazón", "Apoia a WearOS Dialer", "Se che gustou a miña aplicación podes doar por Bizzum ao +34655533304", "Aceptar", "Organizar Axenda", "Nome", "Teléfono", "Sincronizado!", "Erro", "Chamadas", "Superposición", "ACTIVAR", "Nota: Activa os permisos.", "Axustes de Estilo", "Nome App", "Fonte", "Color Texto", "Fondo", "Galería", "Color", "Estilo Teléfono", "Estilo Reloxo", "Tamaño da fonte", "Color de fondo plano", "Espectre de cor (Texto)", "Espectre de cor (Fondo)", "Espectre de cor (Texto Reloxo)", "Espectre de cor (Fondo Reloxo)")
+        AppLanguage.EUSKARA -> TranslationStrings("Menua", "Hasiera", "Agenda", "Pertsonalizatu", "Hizkuntza", "Baimenak", "mesedez, egin dohaintza bat", "WearOS Dialer Lagundu", "Nire aplicación gustatu bazaizu, bizzum bat egin dezakezu +34655533304 zenbakira", "Onartu", "Agenda Antolatu", "Izena", "Telefonoa", "Sinkronizatuta!", "Errorea", "Deiak", "Gainjartzea", "AKTIBATU", "Nota: Baimenak aktibatu.", "Estilo Ezarpenak", "App Izena", "Letra", "Testu Kolorea", "Atzealdea", "Galeria", "Kolorea", "Telefono Estiloa", "Erloju Estiloa", "Letra-tamaina", "Atzealdeko kolore laua", "Kolore-espektroa (Testua)", "Kolore-espektroa (Atzealdea)", "Kolore-espektroa (Erlojuaren testua)", "Kolore-espektroa (Erlojuaren atzealdea)")
+        AppLanguage.BABLE -> TranslationStrings("Menú WearOS Dialer", "Entamu", "Axenda", "Estilu", "Llingua", "Permisos", "por favor, fai una donación", "Sofita a WearOS Dialer", "Si te prestó la mio aplicación pues donar por Bizzum al +34655533304", "Aceptar", "Organizar Axenda", "Nome", "Teléfanu", "¡Sincronizáu!", "Error", "Llamaes", "Superposición", "ACTIVAR", "Nota: Activa los permisos.", "Axustes d'Estilu", "Nome App", "Fonte", "Color Testu", "Fondu", "Galería", "Color", "Estilu Teléfanu", "Estilu Reló", "Tamañu de fonte", "Color de fondu planu", "Espectru de color (Testu)", "Espectru de color (Fondu)", "Espectru de color (Testu Reló)", "Espectru de color (Fondu Reló)")
+        AppLanguage.DEUTSCH -> TranslationStrings("Menü", "Startseite", "Kontakte", "Stil", "Sprache", "Berechtigungen", "bitte spenden Sie", "Unterstützen Sie WearOS Dialer", "Wenn Ihnen meine aplicación gefallen hat, pueden Sie den Betrag spenden, den Sie für angemessen halten, indem Sie ein Bizzum an +34655533304 senden", "OK", "Agenda organisieren", "Name", "Telefon", "Synchronisiert!", "Fehler", "Anrufe", "Überlagerung", "AKTIVIEREN", "Nota: Baimenak aktibatu.", "Stil-Einstellungen", "App-Name", "Schriftart", "Farbe", "Hintergrund", "Galerie", "Farbe", "Telefon-Stil", "Uhren-Stil", "Schriftgröße", "Flache Hintergrundfarbe", "Farbspektrum (Text)", "Farbspektrum (Hintergrund)", "Farbspektrum (Uhr-Text)", "Farbspektrum (Uhr-Hintergrund)")
+        AppLanguage.FRANCAIS -> TranslationStrings("Menu", "Accueil", "Contacts", "Style", "Langue", "Autorisations", "s'il vous plaît, faites un don", "Soutenir WearOS Dialer", "Si vous avez aimé mon application, vous pouvez donner le montant que vous considérez en haciendo un bizzum au +34655533304", "OK", "Organiser l'agenda", "Nom", "Téléphone", "Synchronisé !", "Erreur", "Appels", "Superposition", "ACTIVER", "Note: Activa les permisos.", "Paramètres de style", "Nom de l'app", "Police", "Couleur", "Fond", "Galerie", "Couleur", "Style Téléphone", "Style Montre", "Taille de la police", "Couleur de fond plat", "Spectre de couleurs (Texte)", "Spectre de couleurs (Fond)", "Spectre de couleurs (Texte montre)", "Spectre de couleurs (Fond montre)")
+        AppLanguage.ITALIANO -> TranslationStrings("Menu", "Home", "Contatti", "Stile", "Lingua", "Permessi", "per favore, fai una donazione", "Sostieni WearOS Dialer", "Se ti è piaciuta la mia aplicación puoi donare l'importo que ritieni opportuno haciendo un bizzum al +34655533304", "OK", "Organizza agenda", "Nom", "Telefono", "Sincronizzato!", "Errore", "Chiamate", "Sovrapposición", "ATTIVA", "Note: Activa i permessi.", "Impostaciones stile", "Nome App", "Font", "Colore", "Sfondo", "Galleria", "Colore", "Stile Telefono", "Stile Orologio", "Dimensione del font", "Colore di sfondo piatto", "Spettro dei colori (Testo)", "Spettro dei colori (Sfondo)", "Spettro dei colori (Testo orologio)", "Spettro dei colori (Sfondo orologio)")
+        AppLanguage.HINDI -> TranslationStrings("मेनू", "होम", "संपर्क", "शैली", "भाषा", "अनुमतियां", "कृपया दान करें", "WearOS Dialer का समर्थन करें", "यदि आपको मेरा एप्लिकेशन पसंद आया है, तो आप +34655533304 पर बिज़म करके अपनी इच्छानुसार राशि दान कर सकते हैं", "ठीक es", "एजenda व्यवस्थित करें", "नाम", "फ़ोन", "सिंक हो गया!", "त्रुटि", "कॉल", "ओवरले", "सक्रिय करें", "ध्यान दें: अनुमति सक्रिय करें।", "शैली setिंग्स", "ऐप का नाम", "फ़ॉन्ट", "रंग", "पृष्ठभूमि", "गैलरी", "रंग", "फ़ोन शैली", "घड़ी की शैली", "फ़ॉन्ट आकार", "सपाट पृष्ठभूमि रंग", "रंग स्पेक्ट्रम (पाठ)", "रंग स्पेक्ट्रम (पृष्ठभूमि)", "रंग स्पेक्ट्रम (घड़ी का पाठ)", "रंग स्पेक्ट्रम (घड़ी की पृष्ठभूमि)")
+        AppLanguage.KOREAN -> TranslationStrings("메뉴", "홈", "연락처", "스타일", "언어", "권한", "기부해 주세요", "WearOS Dialer 지원", "제 애플리케이션이 마음에 드셨다면 +34655533304로 bizzum을 보내 원하는 금액을 기부하실 su isseumnida", "확인", "일정 정리", "이름", "전화번호", "동기화됨!", "오류", "전화", "오버레이", "활성화", "참고: 권한을 활성화하십시오.", "스타일 설정", "앱 이름", "글꼴", "색상", "배경", "갤러리", "색상", "폰 estilo", "시계 스타일", "글꼴 크기", "평면 배경색", "색상 스펙트럼 (텍스트)", "색상 스펙트럼 (배경)", "색상 스펙트럼 (시계 텍스트)", "색상 스펙트럼 (시계 배경)")
+        AppLanguage.JAPANESE -> TranslationStrings("メニュー", "홈", "連絡先", "スタイル", "言語", "権限", "寄付をお願いします", "WearOS Dialer をサポート", "私のアプリ को気に入っていただけたなら, +34655533304 に bizzum を送ante, お好きな金額 को寄付していただけます", "OK", "アジェンダの整理", "名前", "電話番号", "同期しました！", "エラー", "通話", "オーバーレイ", "有効にする", "注意：権限を有効 in してください。", "スタイル設定", "アプリ名", "フォント", "色", "背景", "ギャラリー", "色", "電話スタイル", "時計スタイル", "フォントサイズ", "フラットな背景色", "カラースペクトラム (テキスト)", "カラースペクトラム (背景)", "カラースペクトラム (時計のテキスト)", "カラースペクトラム (時計の背景)")
     }
 }
